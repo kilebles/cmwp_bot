@@ -1,11 +1,13 @@
 services:
-  bottec_bot:
+  cmwp_bot:
     build: .
     container_name: cmwp_bot
     restart: always
     env_file:
       - .env
     command: python app/cmwp_bot/main.py
+    environment:
+      - PYTHONPATH=/app
     volumes:
       - .:/app
       - ./logs:/app/logs
@@ -31,6 +33,8 @@ services:
       - postgres
     env_file:
       - .env
+    environment:
+      - PYTHONPATH=/app
     volumes:
       - .:/app
 

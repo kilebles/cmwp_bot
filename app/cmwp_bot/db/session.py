@@ -1,7 +1,7 @@
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
 from sqlalchemy.orm import declarative_base
 
-from cmwp_bot.settings import config
+from app.cmwp_bot.settings import config
 
 DATABASE_URL = (
     f'postgresql+asyncpg://{config.POSTGRES_USER}:{config.POSTGRES_PASSWORD}'
