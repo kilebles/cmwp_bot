@@ -1,0 +1,71 @@
+from aiogram import Router, F
+from aiogram.types import CallbackQuery, Message
+from typing import AsyncGenerator
+
+from app.cmwp_bot.presentation.keyboards import make_keyboard, get_plan_kb
+
+router = Router()
+
+active_surveys: dict[int, AsyncGenerator] = {}
+
+
+@router.callback_query(F.data == 'ideal')
+async def start_survey(callback: CallbackQuery):
+    await callback.message.delete()
+    msg = await callback.message.answer("...")
+    gen = ideal_office_survey(msg)
+    active_surveys[callback.from_user.id] = gen
+    await gen.asend(None)
+    await callback.answer()
+
+
+@router.callback_query(F.data.startswith('q'))
+async def survey_step(callback: CallbackQuery):
+    gen = active_surveys.get(callback.from_user.id)
+    if not gen:
+        await callback.answer('Ошибка. Начните заново.', show_alert=True)
+        return
+    try:
+        await gen.asend(callback)
+    except StopAsyncIteration:
+        del active_surveys[callback.from_user.id]
+    await callback.answer()
+
+
+async def ideal_office_survey(msg: Message) -> AsyncGenerator:
+    # TODO: Сделать вопросы и message настраевыми в БД
+    questions = [
+        ("Какая площадь вашего объекта?", ["До 1000 м²", "1000–5000 м²", "Более 5000 м²"]),
+        ("Сколько этажей в вашем офисе?", ["1 этаж", "2–5 этажей", "Более 5 этажей"]),
+        ("Где расположен объект?", ["Москва", "Московская область", "Другой регион"]),
+        ("Какое текущее состояние офиса?", ["Черновая отделка", "Требуется перепланировка", "Нужна идея", "Другое"]),
+        ("Сколько сотрудников работает в компании?", ["Менее 100", "100–500", "Более 500"]),
+        ("Какой формат офиса вам больше подходит?", ["Open-space", "Кабинетная система", "Гибридный", "Другое"]),
+        ("Какой стиль офиса ближе вашей команде?", ["Современный минимализм", "Тёплый и домашний", "Хай-тек/техногенный", "Классический бизнес-стиль", "Не знаю, хочу вдохновение"])
+    ]
+
+    for i, (q_text, options) in enumerate(questions, start=1):
+        kb = make_keyboard(options, f'q{i}')
+        msg = await msg.edit_text(f"<b>{i}.</b> {q_text}", reply_markup=kb, parse_mode='HTML')
+        callback: CallbackQuery = yield
+
+    await msg.delete()
+    await msg.answer_photo(
+        photo='https://i.postimg.cc/8zr0f4Zy/1737985155837-2.jpg',
+        caption=(
+            "Ваш идеальный офис — это не квадратные метры. Это ваша идея, ожившая в пространстве.\n"
+            "Вы не просто прошли анкету.\n"
+            "Вы на пороге создания пространства, которое отражает мышление вашей команды, ценности вашей компании, будущее вашей культуры.\n"
+            "Только представьте:\n"
+            "— Офис, в котором дышится легко — не только из-за воздуха, но из-за атмосферы.\n"
+            "— Дизайн, в котором каждая линия продумана — стильный и аутентичный.\n"
+            "— Пространство, в котором не нужно «адаптироваться» — оно работает на людей, потому что создано изнутри, с пониманием.\n"
+            "— Люди хотят туда возвращаться. Кандидаты хотят работать только у вас. Команда раскрывает потенциал, потому что пространство помогает, а не мешает.\n"
+            "Это не просто комфорт.\n"
+            "Это стратегический актив. Это репутация. Это ваше конкурентное преимущество, незаметное, но сильное.\n"
+            "А теперь вопрос, который меняет игру:\n"
+            "Хотите получить не просто план, а визуализированное пространство, в которое захочется влюбиться — вам, вашей команде и вашему CEO?"
+        ),
+        reply_markup=get_plan_kb,
+        parse_mode='HTML'
+    )
