@@ -2,7 +2,7 @@ from django.db import models
 from .fields import SafeJSONField
 
 ACTION_CHOICES = [
-    ('REGISTRATION_FINISHED', 'Регистрация завершена'),
+    ('REGISTRATION_FINISHED', 'Завершил регистрацию'),
     ('SURVEY_STARTED', 'Начал анкету'),
     ('SURVEY_COMPLETED', 'Завершил анкету'),
     ('CLICK_CONTACTS', 'Запросил контакты'),

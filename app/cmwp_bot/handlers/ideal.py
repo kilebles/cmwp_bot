@@ -3,6 +3,10 @@ from aiogram.types import CallbackQuery, Message
 from typing import AsyncGenerator
 
 from app.cmwp_bot.presentation.keyboards import make_keyboard, get_plan_kb
+from app.cmwp_bot.db.repo import get_session
+from app.cmwp_bot.services.user_service import create_or_update_user
+from app.cmwp_bot.services.action_service import create_user_action
+from app.cmwp_bot.db.models import ActionType
 
 router = Router()
 
@@ -11,6 +15,20 @@ active_surveys: dict[int, AsyncGenerator] = {}
 
 @router.callback_query(F.data == 'ideal')
 async def start_survey(callback: CallbackQuery):
+    from_user = callback.from_user
+
+    async with get_session() as session:
+        user = await create_or_update_user(
+            session=session,
+            tg_id=from_user.id,
+            first_name=from_user.first_name or '',
+            last_name=from_user.last_name or '',
+            company='',
+            phone='',
+        )
+        await session.flush()
+        await create_user_action(session, user_id=user.id, action_type=ActionType.SURVEY_STARTED)
+
     await callback.message.delete()
     msg = await callback.message.answer("...")
     gen = ideal_office_survey(msg)
@@ -33,7 +51,6 @@ async def survey_step(callback: CallbackQuery):
 
 
 async def ideal_office_survey(msg: Message) -> AsyncGenerator:
-    # TODO: Сделать вопросы и message настраевыми в БД
     questions = [
         ("Какая площадь вашего объекта?", ["До 1000 м²", "1000–5000 м²", "Более 5000 м²"]),
         ("Сколько этажей в вашем офисе?", ["1 этаж", "2–5 этажей", "Более 5 этажей"]),
@@ -50,6 +67,20 @@ async def ideal_office_survey(msg: Message) -> AsyncGenerator:
         callback: CallbackQuery = yield
 
     await msg.delete()
+
+    async with get_session() as session:
+        from_user = msg.chat
+        user = await create_or_update_user(
+            session=session,
+            tg_id=from_user.id,
+            first_name=from_user.first_name or '',
+            last_name=from_user.last_name or '',
+            company='',
+            phone='',
+        )
+        await session.flush()
+        await create_user_action(session, user_id=user.id, action_type=ActionType.SURVEY_COMPLETED)
+
     await msg.answer_photo(
         photo='https://i.postimg.cc/8zr0f4Zy/1737985155837-2.jpg',
         caption=(
@@ -72,9 +103,23 @@ async def ideal_office_survey(msg: Message) -> AsyncGenerator:
 
 
 @router.callback_query(F.data == 'get_plan')
-async def plan_answer(callback: CallbackQuery):    
+async def plan_answer(callback: CallbackQuery):
     await callback.message.answer(
         'Заявка принята. Мы уже готовим для вас план. Скоро свяжемся!',
         parse_mode='HTML'
     )
+
+    from_user = callback.from_user
+    async with get_session() as session:
+        user = await create_or_update_user(
+            session=session,
+            tg_id=from_user.id,
+            first_name=from_user.first_name or '',
+            last_name=from_user.last_name or '',
+            company='',
+            phone='',
+        )
+        await session.flush()
+        await create_user_action(session, user_id=user.id, action_type=ActionType.CLICK_GET_PLAN)
+
     await callback.answer()
