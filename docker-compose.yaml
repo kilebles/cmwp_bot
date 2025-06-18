@@ -25,7 +25,7 @@ services:
 
   migrate:
     build: .
-    container_name: сmwp_migrations
+    container_name: cmwp_migrations
     command: alembic upgrade head
     depends_on:
       - postgres
