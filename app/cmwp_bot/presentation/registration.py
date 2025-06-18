@@ -92,6 +92,8 @@ async def registration_dialog(start_message: Message):
             company=user_data['company'],
             phone=user_data['phone'],
         )
+        
+        await session.flush()
 
         await create_user_action(
             session=session,
