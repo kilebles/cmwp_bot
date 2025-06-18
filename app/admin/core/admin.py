@@ -1,6 +1,7 @@
 from django.contrib import admin
 from .models import User, SurveyAnswer, UserAction
-
+from django.contrib.auth.models import Group, User as AuthUser
+from django.contrib import admin
 
 @admin.register(User)
 class UserAdmin(admin.ModelAdmin):
@@ -21,3 +22,7 @@ class UserActionAdmin(admin.ModelAdmin):
     list_display = ('user', 'action', 'timestamp')
     list_filter = ('action', 'timestamp')
     search_fields = ('user__first_name', 'user__last_name', 'action')
+
+
+admin.site.unregister(Group)
+admin.site.unregister(AuthUser)
