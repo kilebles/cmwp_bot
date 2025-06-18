@@ -1,27 +1,27 @@
 from django.contrib import admin
 from .models import User, SurveyAnswer, UserAction
 from django.contrib.auth.models import Group, User as AuthUser
-from django.contrib import admin
+
 
 @admin.register(User)
 class UserAdmin(admin.ModelAdmin):
-    list_display = ('first_name', 'last_name', 'company', 'phone', 'registered_at')
-    search_fields = ('first_name', 'last_name', 'company', 'phone')
-    list_filter = ('registered_at',)
+    list_display = ('tg_id', 'first_name', 'last_name', 'company', 'phone', 'registered_at', 'survey_completed_at')
+    search_fields = ('first_name', 'last_name', 'company', 'phone', 'tg_id')
+    list_filter = ('registered_at', 'survey_completed_at')
 
 
 @admin.register(SurveyAnswer)
 class SurveyAnswerAdmin(admin.ModelAdmin):
-    list_display = ('user', 'question_number', 'question_text', 'answer_text', 'answered_at')
-    list_filter = ('question_number', 'answered_at')
-    search_fields = ('question_text', 'answer_text')
+    list_display = ('user', 'question_no', 'answer', 'created_at')
+    list_filter = ('question_no', 'created_at')
+    search_fields = ('answer',)
 
 
 @admin.register(UserAction)
 class UserActionAdmin(admin.ModelAdmin):
-    list_display = ('user', 'action', 'timestamp')
-    list_filter = ('action', 'timestamp')
-    search_fields = ('user__first_name', 'user__last_name', 'action')
+    list_display = ('user', 'type', 'created_at')
+    list_filter = ('type', 'created_at')
+    search_fields = ('user__first_name', 'user__last_name', 'type')
 
 
 admin.site.unregister(Group)
