@@ -45,7 +45,7 @@ class UserAction(models.Model):
     id = models.BigAutoField(primary_key=True)
     user = models.ForeignKey(User, on_delete=models.DO_NOTHING, db_column='user_id', verbose_name='Пользователь')
     type = models.CharField(max_length=50, verbose_name='Тип действия')
-    payload = models.JSONField(verbose_name='Параметры')
+    payload = models.JSONField(verbose_name='Параметры', null=True, blank=True)  # <---- тут
     created_at = models.DateTimeField(verbose_name='Время')
 
     class Meta:
@@ -53,3 +53,7 @@ class UserAction(models.Model):
         managed = False
         verbose_name = 'Действие пользователя'
         verbose_name_plural = 'Действия пользователей'
+        ordering = ['-created_at']
+
+    def __str__(self):
+        return f'{self.user} — {self.type} @ {self.created_at:%Y-%m-%d %H:%M}'
