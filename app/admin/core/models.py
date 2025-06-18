@@ -1,6 +1,16 @@
 from django.db import models
 from .fields import SafeJSONField
 
+ACTION_CHOICES = [
+    ('REGISTRATION_FINISHED', 'Регистрация завершена'),
+    ('SURVEY_STARTED', 'Начал анкету'),
+    ('SURVEY_COMPLETED', 'Завершил анкету'),
+    ('CLICK_CONTACTS', 'Запросил контакты'),
+    ('CLICK_GET_PLAN', 'Получил план'),
+    ('CLICK_DISCUSS', 'Обсудить проект'),
+    ('CLICK_MAIL', 'Написал письмо'),
+]
+
 
 class User(models.Model):
     id = models.BigAutoField(primary_key=True)
@@ -42,11 +52,12 @@ class SurveyAnswer(models.Model):
         return f'Ответ {self.user} на {self.question_no}'
 
 
+
 class UserAction(models.Model):
     id = models.BigAutoField(primary_key=True)
     user = models.ForeignKey(User, on_delete=models.DO_NOTHING, db_column='user_id', verbose_name='Пользователь')
-    type = models.CharField(max_length=50, verbose_name='Тип действия')
-    payload = SafeJSONField(verbose_name='Параметры', null=True, blank=True)  # Заменили поле
+    type = models.CharField(max_length=50, choices=ACTION_CHOICES, verbose_name='Тип действия')
+    payload = SafeJSONField(verbose_name='Параметры', null=True, blank=True)
     created_at = models.DateTimeField(verbose_name='Время')
 
     class Meta:
@@ -57,4 +68,4 @@ class UserAction(models.Model):
         ordering = ['-created_at']
 
     def __str__(self):
-        return f'{self.user} — {self.type} @ {self.created_at:%Y-%m-%d %H:%M}'
+        return f'{self.user} — {self.get_type_display()} @ {self.created_at:%Y-%m-%d %H:%M}'
