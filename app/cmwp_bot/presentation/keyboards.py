@@ -1,4 +1,4 @@
-from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup
+from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup, ReplyKeyboardMarkup, KeyboardButton
 
 main_menu_kb = InlineKeyboardMarkup(
     inline_keyboard=[
@@ -45,3 +45,13 @@ def make_keyboard(options: list[str], prefix: str) -> InlineKeyboardMarkup:
         inline_keyboard=[[InlineKeyboardButton(text=opt, callback_data=f"{prefix}:{opt}")] for opt in options]
         
     )
+    
+
+phone_request_kb = ReplyKeyboardMarkup(
+    keyboard=[
+        [KeyboardButton(text='📱 Отправить номер телефона', request_contact=True)]
+    ],
+    resize_keyboard=True,
+    one_time_keyboard=True,
+    input_field_placeholder='Или введите вручную в формате +7...'
+)
