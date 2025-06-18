@@ -13,29 +13,29 @@ main_menu_kb = InlineKeyboardMarkup(
 
 staff_wants_kb = InlineKeyboardMarkup(
     inline_keyboard=[
-        [InlineKeyboardButton(text='Назад ↩', callback_data='back')]
+        [InlineKeyboardButton(text='↩', callback_data='back')]
     ]
 )
 
 how_helpful_kb = InlineKeyboardMarkup(
     inline_keyboard=[
         [InlineKeyboardButton(text='Обсудить мой проект', callback_data='discuss_project')],
-        [InlineKeyboardButton(text='Назад ↩', callback_data='back')]
+        [InlineKeyboardButton(text='↩', callback_data='back')]
     ]
 )
 
 contacts_kb = InlineKeyboardMarkup(
     inline_keyboard=[
         [InlineKeyboardButton(text='Написать письмо', url='https://mail.google.com/mail/?view=cm&to=tgbot-pds@cmwp.ru')],
-        [InlineKeyboardButton(text='Связаться в Telegram', url='https://t.me/yeelisey')],
-        [InlineKeyboardButton(text='Назад ↩', callback_data='back')]
+        [InlineKeyboardButton(text='Связаться в Telegram', url='https://t.me/iam_maris')],
+        [InlineKeyboardButton(text='↩', callback_data='back')]
     ]
 )
 
 get_plan_kb = InlineKeyboardMarkup(
     inline_keyboard=[
-        [InlineKeyboardButton(text='Получить план', callback_data='get_plan')],
-        [InlineKeyboardButton(text='Назад ↩', callback_data='back')]
+        [InlineKeyboardButton(text='Получить план организации пространства офиса', callback_data='get_plan')],
+        [InlineKeyboardButton(text='↩', callback_data='back')]
     ]
 )
 

@@ -56,12 +56,12 @@ async def registration_dialog(start_message: Message):
         await send_temp_warning(last_msg, '❌ Фамилия должна содержать только русские буквы.')
 
     # Компания
-    await last_msg.answer('Название вашей компании:')
+    await last_msg.answer('Введите название вашей компании:')
     company_msg: Message = yield
     user_data['company'] = company_msg.text.strip()
 
     # Телефон
-    await company_msg.answer('Ваш телефон:')
+    await company_msg.answer('Введите ваш телефон:')
     while True:
         phone_msg: Message = yield
         if is_valid_phone(phone_msg.text):

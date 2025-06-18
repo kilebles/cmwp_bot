@@ -29,3 +29,12 @@ async def show_contacts(callback: CallbackQuery):
         parse_mode='HTML'
     )
     await callback.answer()
+    
+
+@router.callback_query(F.data == 'discuss_project')
+async def contacts_answer(callback: CallbackQuery):    
+    await callback.message.answer(
+        'Ваша заявка отправлена, мы скоро свяжемся с вами!',
+        parse_mode='HTML'
+    )
+    await callback.answer()

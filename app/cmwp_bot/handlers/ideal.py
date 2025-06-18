@@ -69,3 +69,12 @@ async def ideal_office_survey(msg: Message) -> AsyncGenerator:
         reply_markup=get_plan_kb,
         parse_mode='HTML'
     )
+
+
+@router.callback_query(F.data == 'get_plan')
+async def plan_answer(callback: CallbackQuery):    
+    await callback.message.answer(
+        'Заявка принята. Мы уже готовим для вас план. Скоро свяжемся!',
+        parse_mode='HTML'
+    )
+    await callback.answer()
