@@ -1,4 +1,5 @@
 from django.db import models
+from .fields import SafeJSONField
 
 
 class User(models.Model):
@@ -45,7 +46,7 @@ class UserAction(models.Model):
     id = models.BigAutoField(primary_key=True)
     user = models.ForeignKey(User, on_delete=models.DO_NOTHING, db_column='user_id', verbose_name='Пользователь')
     type = models.CharField(max_length=50, verbose_name='Тип действия')
-    payload = models.JSONField(verbose_name='Параметры', null=True, blank=True)  # <---- тут
+    payload = SafeJSONField(verbose_name='Параметры', null=True, blank=True)  # Заменили поле
     created_at = models.DateTimeField(verbose_name='Время')
 
     class Meta:
