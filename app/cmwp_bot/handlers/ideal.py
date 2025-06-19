@@ -9,7 +9,6 @@ from app.cmwp_bot.services.user_service import create_or_update_user
 from app.cmwp_bot.services.action_service import create_user_action
 from app.cmwp_bot.db.models import ActionType, SurveyAnswer
 
-
 router = Router()
 active_surveys: dict[int, AsyncGenerator] = {}
 
@@ -87,6 +86,22 @@ async def ideal_office_survey(msg: Message, from_user) -> AsyncGenerator:
             session.add(answer)
             await session.commit()
 
+    async with get_session() as session:
+        user = await create_or_update_user(
+            session=session,
+            tg_id=from_user.id,
+            first_name=from_user.first_name or '',
+            last_name=from_user.last_name or '',
+        )
+        user.survey_completed_at = dt.datetime.utcnow()
+        session.add(user)
+        await create_user_action(
+            session=session,
+            user_id=user.id,
+            action_type=ActionType.SURVEY_COMPLETED
+        )
+        await session.commit()
+
     await msg.answer_photo(
         photo='https://i.postimg.cc/8zr0f4Zy/1737985155837-2.jpg',
         caption=(
@@ -129,5 +144,6 @@ async def plan_answer(callback: CallbackQuery):
             user_id=user.id,
             action_type=ActionType.CLICK_GET_PLAN
         )
+        await session.commit()
 
     await callback.answer()
