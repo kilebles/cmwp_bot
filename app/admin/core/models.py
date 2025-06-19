@@ -31,7 +31,11 @@ class User(models.Model):
         ordering = ['-registered_at']
 
     def __str__(self):
-        return f'{self.first_name} {self.last_name or ""} ({self.tg_id})'
+        phone_display = (
+            f'+{self.phone}' if self.phone and not self.phone.startswith('+')
+            else self.phone or '—'
+        )
+        return f'{self.first_name or ""} {self.last_name or ""} ({phone_display})'
 
 
 class SurveyAnswer(models.Model):
@@ -68,5 +72,4 @@ class UserAction(models.Model):
         ordering = ['-created_at']
 
     def __str__(self):
-        phone_display = f'+{self.phone}' if self.phone and not self.phone.startswith('+') else self.phone or '—'
-        return f'{self.first_name or ""} {self.last_name or ""} ({phone_display})'.strip()
+        return f'{self.user} — {self.get_type_display()} @ {self.created_at:%Y-%m-%d %H:%M}'
