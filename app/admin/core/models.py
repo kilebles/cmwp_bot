@@ -6,7 +6,7 @@ ACTION_CHOICES = [
     ('SURVEY_STARTED', 'Начал анкету'),
     ('SURVEY_COMPLETED', 'Завершил анкету'),
     ('CLICK_CONTACTS', 'Запросил контакты'),
-    ('CLICK_GET_PLAN', 'Получил план'),
+    ('CLICK_GET_PLAN', 'Запросил план'),
     ('CLICK_DISCUSS', 'Решил обсудить проект'),
 ]
 
