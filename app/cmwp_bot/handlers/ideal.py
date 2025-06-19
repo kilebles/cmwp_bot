@@ -5,7 +5,8 @@ from typing import AsyncGenerator
 
 from app.cmwp_bot.presentation.keyboards import make_keyboard, get_plan_kb
 from app.cmwp_bot.db.repo import get_session
-from app.cmwp_bot.services.user_service import create_or_update_user
+from app.cmwp_bot.services.survey_service import get_answers_for_user
+from app.cmwp_bot.services.user_service import create_or_update_user, get_admin_ids
 from app.cmwp_bot.services.action_service import create_user_action
 from app.cmwp_bot.db.models import ActionType, SurveyAnswer
 
@@ -125,12 +126,10 @@ async def ideal_office_survey(msg: Message, from_user) -> AsyncGenerator:
 
 @router.callback_query(F.data == 'get_plan')
 async def plan_answer(callback: CallbackQuery):
-    await callback.message.answer(
-        'Заявка принята. Мы уже готовим для вас план. Скоро свяжемся!',
-        parse_mode='HTML'
-    )
-
+    """Коммит в БД и рассылка админам"""
     from_user = callback.from_user
+    bot = callback.message.bot
+
     async with get_session() as session:
         user = await create_or_update_user(
             session=session,
@@ -138,12 +137,50 @@ async def plan_answer(callback: CallbackQuery):
             first_name=from_user.first_name or '',
             last_name=from_user.last_name or '',
         )
-        await session.flush()
         await create_user_action(
             session=session,
             user_id=user.id,
             action_type=ActionType.CLICK_GET_PLAN
         )
-        await session.commit()
 
+        answers = await get_answers_for_user(session, user.id)
+
+        questions_map = {
+            1: "Какая площадь вашего объекта?",
+            2: "Сколько этажей в вашем офисе?",
+            3: "Где расположен объект?",
+            4: "Какое текущее состояние офиса?",
+            5: "Сколько сотрудников работает в компании?",
+            6: "Какой формат офиса вам больше подходит?",
+            7: "Какой стиль офиса ближе вашей команде?",
+        }
+
+        answers_text = "\n".join(
+            f"<b>{i}. {questions_map.get(ans.question_no, 'Вопрос')}</b>\n— {ans.answer}"
+            for i, ans in enumerate(answers, start=1)
+        )
+
+        full_name = f'{user.first_name or ""} {user.last_name or ""}'.strip()
+        username_link = (
+            f'https://t.me/{from_user.username}'
+            if from_user.username else '—'
+        )
+
+        text = (
+            f'👤 <b>{full_name}</b>\n'
+            f'хочет обсудить проект\n\n'
+            f'Компания: {user.company or "—"}\n'
+            f'Телефон: {user.phone or "—"}\n'
+            f'Профиль: {username_link}\n\n'
+            f'📋 <b>Ответы на анкету:</b>\n{answers_text}'
+        )
+
+        admin_ids = await get_admin_ids(session)
+        for admin_id in admin_ids:
+            await bot.send_message(admin_id, text, parse_mode='HTML')
+
+    await callback.message.answer(
+        'Заявка принята. Мы уже готовим для вас план. Скоро свяжемся!',
+        parse_mode='HTML'
+    )
     await callback.answer()
