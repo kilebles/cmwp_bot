@@ -18,10 +18,14 @@ async def create_or_update_user(
     now = dt.datetime.utcnow()
 
     if user:
-        user.first_name = first_name or user.first_name
-        user.last_name = last_name or user.last_name
-        user.company = company or user.company
-        user.phone = phone or user.phone
+        if first_name:
+            user.first_name = first_name
+        if last_name:
+            user.last_name = last_name
+        if company:
+            user.company = company
+        if phone:
+            user.phone = phone
         user.last_activity_at = now
     else:
         user = User(
