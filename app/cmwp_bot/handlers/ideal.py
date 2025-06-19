@@ -31,7 +31,7 @@ async def start_survey(callback: CallbackQuery):
 
     await callback.message.delete()
     msg = await callback.message.answer("...")
-    gen = ideal_office_survey(msg)
+    gen = ideal_office_survey(msg, from_user)
     active_surveys[callback.from_user.id] = gen
     await gen.asend(None)
     await callback.answer()
@@ -50,7 +50,7 @@ async def survey_step(callback: CallbackQuery):
     await callback.answer()
 
 
-async def ideal_office_survey(msg: Message) -> AsyncGenerator:
+async def ideal_office_survey(msg: Message, from_user) -> AsyncGenerator:
     questions = [
         ("Какая площадь вашего объекта?", ["До 1000 м²", "1000–5000 м²", "Более 5000 м²"]),
         ("Сколько этажей в вашем офисе?", ["1 этаж", "2–5 этажей", "Более 5 этажей"]),
@@ -58,7 +58,11 @@ async def ideal_office_survey(msg: Message) -> AsyncGenerator:
         ("Какое текущее состояние офиса?", ["Черновая отделка", "Требуется перепланировка", "Нужна идея", "Другое"]),
         ("Сколько сотрудников работает в компании?", ["Менее 100", "100–500", "Более 500"]),
         ("Какой формат офиса вам больше подходит?", ["Open-space", "Кабинетная система", "Гибридный", "Другое"]),
-        ("Какой стиль офиса ближе вашей команде?", ["Современный минимализм", "Тёплый и домашний", "Хай-тек/техногенный", "Классический бизнес-стиль", "Не знаю, хочу вдохновение"])
+        ("Какой стиль офиса ближе вашей команде?", [
+            "Современный минимализм", "Тёплый и домашний",
+            "Хай-тек/техногенный", "Классический бизнес-стиль",
+            "Не знаю, хочу вдохновение"
+        ])
     ]
 
     for i, (q_text, options) in enumerate(questions, start=1):
@@ -69,8 +73,6 @@ async def ideal_office_survey(msg: Message) -> AsyncGenerator:
     await msg.delete()
 
     async with get_session() as session:
-        from_user = msg.from_user
-
         user = await create_or_update_user(
             session=session,
             tg_id=from_user.id,
