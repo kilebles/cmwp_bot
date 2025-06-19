@@ -7,7 +7,8 @@ from app.cmwp_bot.presentation.keyboards import make_keyboard, get_plan_kb
 from app.cmwp_bot.db.repo import get_session
 from app.cmwp_bot.services.user_service import create_or_update_user
 from app.cmwp_bot.services.action_service import create_user_action
-from app.cmwp_bot.db.models import ActionType
+from app.cmwp_bot.db.models import ActionType, SurveyAnswer
+
 
 router = Router()
 active_surveys: dict[int, AsyncGenerator] = {}
@@ -70,25 +71,21 @@ async def ideal_office_survey(msg: Message, from_user) -> AsyncGenerator:
         msg = await msg.edit_text(f"<b>{i}.</b> {q_text}", reply_markup=kb, parse_mode='HTML')
         callback: CallbackQuery = yield
 
-    await msg.delete()
-
-    async with get_session() as session:
-        user = await create_or_update_user(
-            session=session,
-            tg_id=from_user.id,
-            first_name=from_user.first_name or '',
-            last_name=from_user.last_name or '',
-        )
-
-        user.survey_completed_at = dt.datetime.utcnow()
-        session.add(user)
-        await session.flush()
-
-        await create_user_action(
-            session=session,
-            user_id=user.id,
-            action_type=ActionType.SURVEY_COMPLETED
-        )
+        answer_text = callback.data.split(':', 1)[-1]
+        async with get_session() as session:
+            user = await create_or_update_user(
+                session=session,
+                tg_id=from_user.id,
+                first_name=from_user.first_name or '',
+                last_name=from_user.last_name or '',
+            )
+            answer = SurveyAnswer(
+                user_id=user.id,
+                question_no=i,
+                answer=answer_text
+            )
+            session.add(answer)
+            await session.commit()
 
     await msg.answer_photo(
         photo='https://i.postimg.cc/8zr0f4Zy/1737985155837-2.jpg',
