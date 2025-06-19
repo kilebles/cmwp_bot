@@ -1,9 +1,15 @@
+import json
+
+from django.urls import path
 from django.contrib import admin
+from django.contrib import messages
+from django.http import HttpResponseRedirect
 from django.utils.safestring import mark_safe
 from django.utils.html import format_html
-from .models import User, SurveyAnswer, UserAction
+
+from app.cmwp_bot.services.broadcast import send_broadcast
+from .models import BroadcastMessage, User, SurveyAnswer, UserAction
 from django.contrib.auth.models import Group, User as AuthUser
-import json
 
 
 @admin.register(User)
@@ -72,6 +78,42 @@ class UserActionAdmin(admin.ModelAdmin):
     user_display.short_description = 'Пользователь'
     user_phone.short_description = 'Телефон'
     user_company.short_description = 'Компания'
+
+
+
+@admin.register(BroadcastMessage)
+class BroadcastMessageAdmin(admin.ModelAdmin):
+    list_display = ['created_at', 'is_sent', 'short_text', 'send_action']
+    readonly_fields = ['is_sent', 'created_at']
+    fields = ['text', 'action_filter', 'is_sent', 'created_at']
+
+    def short_text(self, obj):
+        return format_html('<div style="max-width: 400px; white-space: pre-wrap;">{}</div>', obj.text[:200])
+    short_text.short_description = 'Сообщение'
+
+    def send_action(self, obj):
+        if not obj.is_sent:
+            return format_html('<a class="button" href="{}">Отправить</a>', f'./send/{obj.id}/')
+        return 'Отправлено'
+    send_action.short_description = 'Действие'
+
+    def get_urls(self):
+        urls = super().get_urls()
+        custom = [
+            path('send/<int:pk>/', self.admin_site.admin_view(self.send_broadcast_view))
+        ]
+        return custom + urls
+
+    def send_broadcast_view(self, request, pk):
+        message = BroadcastMessage.objects.get(pk=pk)
+        if message.is_sent:
+            self.message_user(request, 'Уже отправлено.', level=messages.WARNING)
+        else:
+            send_broadcast(message.text, action_filter=message.action_filter)
+            message.is_sent = True
+            message.save()
+            self.message_user(request, 'Сообщение отправлено.', level=messages.SUCCESS)
+        return HttpResponseRedirect("../../")
 
 
 admin.site.unregister(Group)
