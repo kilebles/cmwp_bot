@@ -73,3 +73,28 @@ class UserAction(models.Model):
 
     def __str__(self):
         return f'{self.user} — {self.get_type_display()} @ {self.created_at:%Y-%m-%d %H:%M}'
+    
+    
+class BroadcastMessage(models.Model):
+    id = models.BigAutoField(primary_key=True)
+    text = models.TextField(verbose_name='Текст сообщения')
+    is_sent = models.BooleanField(default=False, verbose_name='Уже отправлено')
+    created_at = models.DateTimeField(auto_now_add=True, verbose_name='Создано')
+    
+    action_filter = models.CharField(
+        max_length=50,
+        choices=ACTION_CHOICES,
+        null=True,
+        blank=True,
+        verbose_name='Фильтр по действию'
+    )
+
+    class Meta:
+        db_table = 'broadcast_messages'
+        managed = True
+        verbose_name = 'Рассылка'
+        verbose_name_plural = 'Рассылки'
+        ordering = ['-created_at']
+
+    def __str__(self):
+        return f'Рассылка от {self.created_at:%Y-%m-%d %H:%M}'
