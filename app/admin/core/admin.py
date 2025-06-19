@@ -17,7 +17,7 @@ class UserAdmin(admin.ModelAdmin):
 class SurveyAnswerAdmin(admin.ModelAdmin):
     list_display = ('user', 'question_no', 'answer', 'created_at')
     list_filter = ('question_no', 'created_at')
-    search_fields = ('answer',)
+    search_fields = ('answer', 'user__first_name', 'user__last_name', 'user__phone')
 
 
 @admin.register(UserAction)
