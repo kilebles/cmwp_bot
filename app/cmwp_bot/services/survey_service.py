@@ -1,4 +1,4 @@
-from sqlalchemy import select
+from sqlalchemy import delete, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from collections.abc import Sequence
 
@@ -12,3 +12,9 @@ async def get_answers_for_user(session: AsyncSession, user_id: int) -> Sequence[
         .order_by(SurveyAnswer.question_no)
     )
     return result.all()
+
+
+async def delete_answers_for_user(session: AsyncSession, user_id: int) -> None:
+    await session.execute(
+        delete(SurveyAnswer).where(SurveyAnswer.user_id == user_id)
+    )

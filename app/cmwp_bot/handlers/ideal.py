@@ -5,7 +5,7 @@ from typing import AsyncGenerator
 
 from app.cmwp_bot.presentation.keyboards import make_keyboard, get_plan_kb
 from app.cmwp_bot.db.repo import get_session
-from app.cmwp_bot.services.survey_service import get_answers_for_user
+from app.cmwp_bot.services.survey_service import delete_answers_for_user, get_answers_for_user
 from app.cmwp_bot.services.user_service import create_or_update_user, get_admin_ids
 from app.cmwp_bot.services.action_service import create_user_action
 from app.cmwp_bot.db.models import ActionType, SurveyAnswer
@@ -27,8 +27,14 @@ async def start_survey(callback: CallbackQuery):
             company='',
             phone='',
         )
-        await session.flush()
-        await create_user_action(session, user_id=user.id, action_type=ActionType.SURVEY_STARTED)
+
+        await delete_answers_for_user(session, user.id)
+
+        await create_user_action(
+            session=session,
+            user_id=user.id,
+            action_type=ActionType.SURVEY_STARTED
+        )
 
     await callback.message.delete()
     msg = await callback.message.answer("...")
