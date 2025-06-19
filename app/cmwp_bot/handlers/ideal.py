@@ -1,5 +1,4 @@
 import datetime as dt
-
 from aiogram import Router, F
 from aiogram.types import CallbackQuery, Message
 from typing import AsyncGenerator
@@ -11,7 +10,6 @@ from app.cmwp_bot.services.action_service import create_user_action
 from app.cmwp_bot.db.models import ActionType
 
 router = Router()
-
 active_surveys: dict[int, AsyncGenerator] = {}
 
 
@@ -71,17 +69,24 @@ async def ideal_office_survey(msg: Message) -> AsyncGenerator:
     await msg.delete()
 
     async with get_session() as session:
-        from_user = msg.chat
+        from_user = msg.from_user
+
         user = await create_or_update_user(
             session=session,
             tg_id=from_user.id,
             first_name=from_user.first_name or '',
             last_name=from_user.last_name or '',
-            company='',
-            phone='',
         )
+
+        user.survey_completed_at = dt.datetime.utcnow()
+        session.add(user)
         await session.flush()
-        await create_user_action(session, user_id=user.id, action_type=ActionType.SURVEY_COMPLETED)
+
+        await create_user_action(
+            session=session,
+            user_id=user.id,
+            action_type=ActionType.SURVEY_COMPLETED
+        )
 
     await msg.answer_photo(
         photo='https://i.postimg.cc/8zr0f4Zy/1737985155837-2.jpg',
@@ -118,11 +123,12 @@ async def plan_answer(callback: CallbackQuery):
             tg_id=from_user.id,
             first_name=from_user.first_name or '',
             last_name=from_user.last_name or '',
-            company='',
-            phone='',
         )
-        user.survey_completed_at = dt.datetime.utcnow() 
         await session.flush()
-        await create_user_action(session, user_id=user.id, action_type=ActionType.CLICK_GET_PLAN)
+        await create_user_action(
+            session=session,
+            user_id=user.id,
+            action_type=ActionType.CLICK_GET_PLAN
+        )
 
     await callback.answer()

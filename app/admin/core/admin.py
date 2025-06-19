@@ -22,11 +22,11 @@ class SurveyAnswerAdmin(admin.ModelAdmin):
 
 @admin.register(UserAction)
 class UserActionAdmin(admin.ModelAdmin):
-    list_display = ('user', 'type', 'created_at')
+    list_display = ('user_display', 'type', 'created_at')
     list_filter = ('type', 'created_at')
-    search_fields = ('user__first_name', 'user__last_name', 'type')
-    readonly_fields = ('formatted_payload',)
-    fields = ('user', 'type', 'created_at', 'formatted_payload')
+    search_fields = ('user__first_name', 'user__last_name', 'user__phone', 'type')
+    readonly_fields = ('formatted_payload', 'user_display', 'user_phone', 'user_company')
+    fields = ('user', 'user_display', 'user_phone', 'user_company', 'type', 'created_at', 'formatted_payload')
 
     def formatted_payload(self, obj):
         try:
@@ -35,7 +35,19 @@ class UserActionAdmin(admin.ModelAdmin):
             pretty = str(obj.payload)
         return format_html('<pre style="white-space: pre-wrap;">{}</pre>', pretty)
 
+    def user_display(self, obj):
+        return str(obj.user)
+
+    def user_phone(self, obj):
+        return obj.user.phone or '—'
+
+    def user_company(self, obj):
+        return obj.user.company or '—'
+
     formatted_payload.short_description = 'Доп. информация'
+    user_display.short_description = 'Пользователь'
+    user_phone.short_description = 'Телефон'
+    user_company.short_description = 'Компания'
 
 
 admin.site.unregister(Group)

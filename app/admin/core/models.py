@@ -68,4 +68,5 @@ class UserAction(models.Model):
         ordering = ['-created_at']
 
     def __str__(self):
-        return f'{self.user} — {self.get_type_display()} @ {self.created_at:%Y-%m-%d %H:%M}'
+        phone_display = f'+{self.phone}' if self.phone and not self.phone.startswith('+') else self.phone or '—'
+        return f'{self.first_name or ""} {self.last_name or ""} ({phone_display})'.strip()
