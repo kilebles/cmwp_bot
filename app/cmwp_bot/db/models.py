@@ -1,5 +1,5 @@
 import enum, datetime as dt
-from sqlalchemy import BigInteger, Enum, ForeignKey, JSON, Text, Column
+from sqlalchemy import BigInteger, Boolean, Enum, ForeignKey, JSON, Text, Column
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.cmwp_bot.db.session import Base
@@ -20,6 +20,7 @@ class User(Base):
     id: Mapped[int] = mapped_column(primary_key=True)
     tg_id: Mapped[int] = mapped_column(BigInteger, unique=True, nullable=False)
 
+    is_admin: Mapped[bool] = mapped_column(Boolean, default=False)
     first_name: Mapped[str | None] = mapped_column(Text)
     last_name: Mapped[str | None] = mapped_column(Text)
     company: Mapped[str | None] = mapped_column(Text)

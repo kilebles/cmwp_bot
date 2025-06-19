@@ -21,6 +21,7 @@ class User(models.Model):
     registered_at = models.DateTimeField(verbose_name='Дата регистрации')
     survey_completed_at = models.DateTimeField(null=True, blank=True, verbose_name='Дата завершения анкеты')
     last_activity_at = models.DateTimeField(verbose_name='Последняя активность')
+    is_admin = models.BooleanField(default=False, verbose_name='Администратор')
 
     class Meta:
         db_table = 'users'
