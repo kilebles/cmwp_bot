@@ -1,3 +1,5 @@
+import datetime as dt
+
 from aiogram import Router, F
 from aiogram.types import CallbackQuery, Message
 from typing import AsyncGenerator
@@ -119,6 +121,7 @@ async def plan_answer(callback: CallbackQuery):
             company='',
             phone='',
         )
+        user.survey_completed_at = dt.datetime.utcnow() 
         await session.flush()
         await create_user_action(session, user_id=user.id, action_type=ActionType.CLICK_GET_PLAN)
 

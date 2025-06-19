@@ -35,7 +35,7 @@ class UserActionAdmin(admin.ModelAdmin):
             pretty = str(obj.payload)
         return format_html('<pre style="white-space: pre-wrap;">{}</pre>', pretty)
 
-    formatted_payload.short_description = 'Payload (читабельно)'
+    formatted_payload.short_description = 'Доп. информация'
 
 
 admin.site.unregister(Group)
