@@ -58,12 +58,19 @@ async def contacts_answer(callback: CallbackQuery):
 
         admin_ids = await get_admin_ids(session)
         full_name = f'{user.first_name or ""} {user.last_name or ""}'.strip()
+        username_link = (
+            f'https://t.me/{from_user.username}'
+            if from_user.username else '—'
+        )
+        
         text = (
             f'👤 <b>{full_name}</b>\n'
             f'хочет обсудить проект\n\n'
             f'Компания: {user.company or "—"}\n'
-            f'Телефон: {user.phone or "—"}'
+            f'Телефон: {user.phone or "—"}\n'
+            f'Профиль: {username_link}'
         )
+        
         for admin_id in admin_ids:
             try:
                 await bot.send_message(admin_id, text)
