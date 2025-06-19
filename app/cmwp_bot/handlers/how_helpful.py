@@ -2,6 +2,10 @@ from aiogram import Router, F
 from aiogram.types import CallbackQuery
 
 from app.cmwp_bot.presentation.keyboards import how_helpful_kb
+from app.cmwp_bot.db.repo import get_session
+from app.cmwp_bot.services.user_service import create_or_update_user
+from app.cmwp_bot.services.action_service import create_user_action
+from app.cmwp_bot.db.models import ActionType
 
 router = Router()
 
@@ -32,7 +36,23 @@ async def show_contacts(callback: CallbackQuery):
     
 
 @router.callback_query(F.data == 'discuss_project')
-async def contacts_answer(callback: CallbackQuery):    
+async def contacts_answer(callback: CallbackQuery):
+    from_user = callback.from_user
+
+    async with get_session() as session:
+        user = await create_or_update_user(
+            session=session,
+            tg_id=from_user.id,
+            first_name=from_user.first_name or '',
+            last_name=from_user.last_name or '',
+        )
+        await session.flush()
+        await create_user_action(
+            session=session,
+            user_id=user.id,
+            action_type=ActionType.CLICK_DISCUSS
+        )
+
     await callback.message.answer(
         'Ваша заявка отправлена, мы скоро свяжемся с вами!',
         parse_mode='HTML'
