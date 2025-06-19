@@ -6,6 +6,7 @@ from app.cmwp_bot.db.repo import get_session
 from app.cmwp_bot.services.user_service import create_or_update_user
 from app.cmwp_bot.services.action_service import create_user_action
 from app.cmwp_bot.db.models import ActionType
+from app.cmwp_bot.services.user_service import get_admin_ids
 
 router = Router()
 
@@ -38,6 +39,7 @@ async def show_contacts(callback: CallbackQuery):
 @router.callback_query(F.data == 'discuss_project')
 async def contacts_answer(callback: CallbackQuery):
     from_user = callback.from_user
+    bot = callback.bot
 
     async with get_session() as session:
         user = await create_or_update_user(
@@ -47,14 +49,28 @@ async def contacts_answer(callback: CallbackQuery):
             last_name=from_user.last_name or '',
         )
         await session.flush()
+
         await create_user_action(
             session=session,
             user_id=user.id,
             action_type=ActionType.CLICK_DISCUSS
         )
 
+        admin_ids = await get_admin_ids(session)
+        full_name = f'{user.first_name or ""} {user.last_name or ""}'.strip()
+        text = (
+            f'👤 <b>{full_name}</b>\n'
+            f'хочет обсудить проект\n\n'
+            f'Компания: {user.company or "—"}\n'
+            f'Телефон: {user.phone or "—"}'
+        )
+        for admin_id in admin_ids:
+            try:
+                await bot.send_message(admin_id, text)
+            except Exception:
+                pass
+
     await callback.message.answer(
-        'Ваша заявка отправлена, мы скоро свяжемся с вами!',
-        parse_mode='HTML'
+        'Ваша заявка отправлена, мы скоро свяжемся с вами!'
     )
     await callback.answer()

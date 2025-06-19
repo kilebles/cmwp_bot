@@ -40,3 +40,9 @@ async def create_or_update_user(
         session.add(user)
 
     return user
+
+
+
+async def get_admin_ids(session):
+    result = await session.execute(select(User.tg_id).where(User.is_admin == True))
+    return [row[0] for row in result.all()]
