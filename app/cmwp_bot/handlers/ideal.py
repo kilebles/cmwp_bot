@@ -62,7 +62,8 @@ async def ideal_office_survey(msg: Message, from_user) -> AsyncGenerator:
     await log_survey_completed(from_user)
 
     text, photo = await get_text_block('survey_result')
-
+    
+    await callback.message.delete()
     await msg.answer_photo(
         photo=photo or 'https://i.postimg.cc/8zr0f4Zy/1737985155837-2.jpg',
         caption=text,
