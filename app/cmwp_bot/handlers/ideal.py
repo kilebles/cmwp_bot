@@ -1,15 +1,10 @@
-import datetime as dt
 from aiogram import Router, F
 from aiogram.types import CallbackQuery, Message
 from typing import AsyncGenerator
 
 from app.cmwp_bot.presentation.keyboards import make_keyboard, get_plan_kb
-from app.cmwp_bot.db.repo import get_session
 from app.cmwp_bot.services.email_service import send_plan_email
-from app.cmwp_bot.services.survey_service import delete_answers_for_user, get_answers_for_user
-from app.cmwp_bot.services.user_service import create_or_update_user, get_admin_ids
-from app.cmwp_bot.services.action_service import create_user_action
-from app.cmwp_bot.db.models import ActionType, SurveyAnswer
+from app.cmwp_bot.services.action_service import log_get_plan, log_survey_answer, log_survey_completed, log_survey_started
 
 router = Router()
 active_surveys: dict[int, AsyncGenerator] = {}
@@ -17,29 +12,11 @@ active_surveys: dict[int, AsyncGenerator] = {}
 
 @router.callback_query(F.data == 'ideal')
 async def start_survey(callback: CallbackQuery):
-    from_user = callback.from_user
-
-    async with get_session() as session:
-        user = await create_or_update_user(
-            session=session,
-            tg_id=from_user.id,
-            first_name=from_user.first_name or '',
-            last_name=from_user.last_name or '',
-            company='',
-            phone='',
-        )
-
-        await delete_answers_for_user(session, user.id)
-
-        await create_user_action(
-            session=session,
-            user_id=user.id,
-            action_type=ActionType.SURVEY_STARTED
-        )
+    await log_survey_started(callback.from_user)
 
     await callback.message.delete()
     msg = await callback.message.answer("...")
-    gen = ideal_office_survey(msg, from_user)
+    gen = ideal_office_survey(msg, callback.from_user)
     active_surveys[callback.from_user.id] = gen
     await gen.asend(None)
     await callback.answer()
@@ -79,36 +56,9 @@ async def ideal_office_survey(msg: Message, from_user) -> AsyncGenerator:
         callback: CallbackQuery = yield
 
         answer_text = callback.data.split(':', 1)[-1]
-        async with get_session() as session:
-            user = await create_or_update_user(
-                session=session,
-                tg_id=from_user.id,
-                first_name=from_user.first_name or '',
-                last_name=from_user.last_name or '',
-            )
-            answer = SurveyAnswer(
-                user_id=user.id,
-                question_no=i,
-                answer=answer_text
-            )
-            session.add(answer)
-            await session.commit()
+        await log_survey_answer(from_user, i, answer_text)
 
-    async with get_session() as session:
-        user = await create_or_update_user(
-            session=session,
-            tg_id=from_user.id,
-            first_name=from_user.first_name or '',
-            last_name=from_user.last_name or '',
-        )
-        user.survey_completed_at = dt.datetime.utcnow()
-        session.add(user)
-        await create_user_action(
-            session=session,
-            user_id=user.id,
-            action_type=ActionType.SURVEY_COMPLETED
-        )
-        await session.commit()
+    await log_survey_completed(from_user)
 
     await msg.answer_photo(
         photo='https://i.postimg.cc/8zr0f4Zy/1737985155837-2.jpg',
@@ -133,67 +83,50 @@ async def ideal_office_survey(msg: Message, from_user) -> AsyncGenerator:
 
 @router.callback_query(F.data == 'get_plan')
 async def plan_answer(callback: CallbackQuery):
-    """Коммит в БД и рассылка админам и на почту"""
+    """Коммит в бд, рассылка админам в тг и на почту"""
     
     from_user = callback.from_user
     bot = callback.message.bot
 
-    async with get_session() as session:
-        user = await create_or_update_user(
-            session=session,
-            tg_id=from_user.id,
-            first_name=from_user.first_name or '',
-            last_name=from_user.last_name or '',
-        )
-        await create_user_action(
-            session=session,
-            user_id=user.id,
-            action_type=ActionType.CLICK_GET_PLAN
-        )
+    user, answers, admin_ids = await log_get_plan(from_user)
 
-        answers = await get_answers_for_user(session, user.id)
+    questions_map = {
+        1: "Какая площадь вашего объекта?",
+        2: "Сколько этажей в вашем офисе?",
+        3: "Где расположен объект?",
+        4: "Какое текущее состояние офиса?",
+        5: "Сколько сотрудников работает в компании?",
+        6: "Какой формат офиса вам больше подходит?",
+        7: "Какой стиль офиса ближе вашей команде?",
+    }
 
-        questions_map = {
-            1: "Какая площадь вашего объекта?",
-            2: "Сколько этажей в вашем офисе?",
-            3: "Где расположен объект?",
-            4: "Какое текущее состояние офиса?",
-            5: "Сколько сотрудников работает в компании?",
-            6: "Какой формат офиса вам больше подходит?",
-            7: "Какой стиль офиса ближе вашей команде?",
-        }
+    answers_text = "\n".join(
+        f"<b>{i}. {questions_map.get(ans.question_no, 'Вопрос')}</b>\n— {ans.answer}"
+        for i, ans in enumerate(answers, start=1)
+    )
 
-        answers_text = "\n".join(
-            f"<b>{i}. {questions_map.get(ans.question_no, 'Вопрос')}</b>\n— {ans.answer}"
-            for i, ans in enumerate(answers, start=1)
-        )
+    full_name = f'{user.first_name or ""} {user.last_name or ""}'.strip()
+    username_link = f'https://t.me/{from_user.username}' if from_user.username else '—'
 
-        full_name = f'{user.first_name or ""} {user.last_name or ""}'.strip()
-        username_link = (
-            f'https://t.me/{from_user.username}'
-            if from_user.username else '—'
-        )
+    text = (
+        f'👤 <b>{full_name}</b>\n'
+        f'хочет получить план организации пространства офиса\n\n'
+        f'Компания: {user.company or "—"}\n'
+        f'Телефон: {user.phone or "—"}\n'
+        f'Профиль: {username_link}\n\n'
+        f'📋 <b>Ответы на анкету:</b>\n{answers_text}'
+    )
 
-        text = (
-            f'👤 <b>{full_name}</b>\n'
-            f'хочет получить план организации пространства офиса\n\n'
-            f'Компания: {user.company or "—"}\n'
-            f'Телефон: {user.phone or "—"}\n'
-            f'Профиль: {username_link}\n\n'
-            f'📋 <b>Ответы на анкету:</b>\n{answers_text}'
-        )
+    for admin_id in admin_ids:
+        await bot.send_message(admin_id, text, parse_mode='HTML')
 
-        admin_ids = await get_admin_ids(session)
-        for admin_id in admin_ids:
-            await bot.send_message(admin_id, text, parse_mode='HTML')
-        
-        await send_plan_email(
-            full_name=full_name,
-            username_link=username_link,
-            phone=user.phone or "—",
-            company=user.company or "—",
-            answers_text=answers_text.replace('<b>', '').replace('</b>', '')
-        )
+    await send_plan_email(
+        full_name=full_name,
+        username_link=username_link,
+        phone=user.phone or "—",
+        company=user.company or "—",
+        answers_text=answers_text.replace('<b>', '').replace('</b>', '')
+    )
 
     await callback.message.answer(
         'Заявка принята. Мы уже готовим для вас план. Скоро свяжемся!',

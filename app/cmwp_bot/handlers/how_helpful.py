@@ -2,12 +2,8 @@ from aiogram import Router, F
 from aiogram.types import CallbackQuery
 
 from app.cmwp_bot.presentation.keyboards import how_helpful_kb
-from app.cmwp_bot.db.repo import get_session
 from app.cmwp_bot.services.email_service import send_discuss_email
-from app.cmwp_bot.services.user_service import create_or_update_user
-from app.cmwp_bot.services.action_service import create_user_action
-from app.cmwp_bot.db.models import ActionType
-from app.cmwp_bot.services.user_service import get_admin_ids
+from app.cmwp_bot.services.action_service import log_discuss_project
 
 router = Router()
 
@@ -39,53 +35,36 @@ async def show_contacts(callback: CallbackQuery):
 
 @router.callback_query(F.data == 'discuss_project')
 async def contacts_answer(callback: CallbackQuery):
-    """Коммит в БД и рассылка админам и на почту"""
+    """Коммит в бд, рассылка админам в тг и на почту"""
     
     from_user = callback.from_user
     bot = callback.bot
 
-    async with get_session() as session:
-        user = await create_or_update_user(
-            session=session,
-            tg_id=from_user.id,
-            first_name=from_user.first_name or '',
-            last_name=from_user.last_name or '',
-        )
-        await session.flush()
+    user, admin_ids = await log_discuss_project(from_user)
 
-        await create_user_action(
-            session=session,
-            user_id=user.id,
-            action_type=ActionType.CLICK_DISCUSS
-        )
+    full_name = f'{user.first_name or ""} {user.last_name or ""}'.strip()
+    username_link = f'https://t.me/{from_user.username}' if from_user.username else '—'
 
-        admin_ids = await get_admin_ids(session)
-        full_name = f'{user.first_name or ""} {user.last_name or ""}'.strip()
-        username_link = (
-            f'https://t.me/{from_user.username}'
-            if from_user.username else '—'
-        )
-        
-        text = (
-            f'👤 <b>{full_name}</b>\n'
-            f'хочет обсудить проект\n\n'
-            f'Компания: {user.company or "—"}\n'
-            f'Телефон: {user.phone or "—"}\n'
-            f'Профиль: {username_link}'
-        )
-        
-        for admin_id in admin_ids:
-            try:
-                await bot.send_message(admin_id, text)
-            except Exception:
-                pass
-        
-        await send_discuss_email(
-            full_name=full_name,
-            username_link=username_link,
-            phone=user.phone or "—",
-            company=user.company or "—"
-        )
+    text = (
+        f'👤 <b>{full_name}</b>\n'
+        f'хочет обсудить проект\n\n'
+        f'Компания: {user.company or "—"}\n'
+        f'Телефон: {user.phone or "—"}\n'
+        f'Профиль: {username_link}'
+    )
+
+    for admin_id in admin_ids:
+        try:
+            await bot.send_message(admin_id, text, parse_mode='HTML')
+        except Exception:
+            pass
+
+    await send_discuss_email(
+        full_name=full_name,
+        username_link=username_link,
+        phone=user.phone or "—",
+        company=user.company or "—"
+    )
 
     await callback.message.answer(
         'Ваша заявка отправлена, мы скоро свяжемся с вами!'
