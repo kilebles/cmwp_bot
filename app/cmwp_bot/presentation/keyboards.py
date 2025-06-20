@@ -4,8 +4,7 @@ main_menu_kb = InlineKeyboardMarkup(
     inline_keyboard=[
         [InlineKeyboardButton(text='Узнать идеал своего офиса', callback_data='ideal')],
         [InlineKeyboardButton(text='Что сотркудники хотят видеть в офисе', callback_data='staff_wants')],
-        [InlineKeyboardButton(text='Узнать стоимость организации офиса', 
-                              url='https://www.cmwp.ru/cwiq/reviews/obzory-po-segmentam-rynka/ofisnaya-nedvizhimost/?utm_source=tg&utm_medium=bot_pds&utm_campaign=dvizhenie')],
+        [InlineKeyboardButton(text='Узнать стоимость организации офиса', callback_data='office_price')],
         [InlineKeyboardButton(text='Чем мы можем быть полезны', callback_data='how_helpful')],
         [InlineKeyboardButton(text='Контакты для связи', callback_data='contacts')]
     ]
@@ -54,4 +53,12 @@ phone_request_kb = ReplyKeyboardMarkup(
     resize_keyboard=True,
     one_time_keyboard=True,
     input_field_placeholder='Или введите вручную в формате +7...'
+)
+
+
+office_price_kb = InlineKeyboardMarkup(
+    inline_keyboard=[
+        [InlineKeyboardButton(text='Связаться в Telegram', url='https://t.me/iam_maris')],
+        [InlineKeyboardButton(text='↩', callback_data='back')]
+    ]
 )
