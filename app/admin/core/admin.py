@@ -17,17 +17,16 @@ class UserAdmin(admin.ModelAdmin):
     list_display = (
         'tg_id', 'first_name', 'last_name', 'company', 'phone',
         'registered_at', 'survey_completed_at',
-        'has_requested_prices', 'has_requested_plan', 
-        'has_requested_discussion', 'is_admin'
+        'has_requested_plan', 'has_requested_prices', 'has_requested_discussion', 'is_admin'
     )
     search_fields = ('first_name', 'last_name', 'company', 'phone', 'tg_id')
-    list_filter = ('registered_at', 'survey_completed_at', 'has_requested_prices', 'is_admin')
+    list_filter = ('registered_at', 'survey_completed_at', 'is_admin')
 
     def has_requested_plan(self, obj):
         return obj.useraction_set.filter(type='CLICK_GET_PLAN').exists()
     has_requested_plan.short_description = 'Запросил план'
     has_requested_plan.boolean = True
-    
+
     def has_requested_prices(self, obj):
         return obj.useraction_set.filter(type='CLICK_PRICES').exists()
     has_requested_prices.short_description = 'Запросил стоимость'
@@ -37,7 +36,7 @@ class UserAdmin(admin.ModelAdmin):
         return obj.useraction_set.filter(type='CLICK_DISCUSS').exists()
     has_requested_discussion.short_description = 'Решил обсудить проект'
     has_requested_discussion.boolean = True
-    
+
     actions = ['make_admin', 'remove_admin']
 
     @admin.action(description='Сделать администратором')
