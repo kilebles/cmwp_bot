@@ -4,6 +4,7 @@ from aiogram.types import Message
 from typing import AsyncGenerator
 
 from app.cmwp_bot.presentation.registration import registration_dialog
+from app.cmwp_bot.services.caption_service import get_text_block
 
 router = Router()
 
@@ -12,20 +13,10 @@ active_dialogs: dict[int, AsyncGenerator] = {}
 
 @router.message(CommandStart())
 async def cmd_start(message: Message):
-    # TODO: возможность менять message из админки (подтягивать из бд текст)
-    
-    await message.answer(
-        (
-            "👋 Добро пожаловать в CMWP CONSTRUCTION!\n"
-            "Здесь вы можете узнать:\n"
-            "— Что сотрудники хотят видеть в офисе 2025 года\n"
-            "— Какой он \"Офис вашей мечты?\" 👉 анкета за 20 секунд\n"
-            "— Гайд по стоимости отделки офисов\n"
-            "— Задать вопрос по вашей недвижимости\n"
-            "— Наши контакты для связи\n\n"
-            "Давайте начнём с короткого знакомства😉"
-        )
-    )
+    text, _ = await get_text_block('welcome_message')
+
+    await message.answer(text, parse_mode='HTML')
+
     dialog = registration_dialog(message)
     active_dialogs[message.from_user.id] = dialog
     await dialog.asend(None)

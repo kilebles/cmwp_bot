@@ -2,6 +2,7 @@ from aiogram import Router, F
 from aiogram.types import CallbackQuery
 
 from app.cmwp_bot.presentation.keyboards import how_helpful_kb
+from app.cmwp_bot.services.caption_service import get_text_block
 from app.cmwp_bot.services.email_service import send_discuss_email
 from app.cmwp_bot.services.action_service import log_discuss_project
 
@@ -10,24 +11,13 @@ router = Router()
 
 @router.callback_query(F.data == 'how_helpful')
 async def show_contacts(callback: CallbackQuery):
-    # TODO: возможность менять message из админки (подтягивать из бд текст и фото)
-    
     await callback.message.delete()
+
+    text, photo = await get_text_block('how_helpful')
+
     await callback.message.answer_photo(
-        photo='https://i.postimg.cc/Nfss4q1y/FR7A1162.jpg',
-        caption=(
-            "<b>Человек есть мера всех проектов🤝</b>\n\n"
-            "Задавшись этой мыслью, мы создаём коммерческие пространства для бизнеса и для людей — "
-            "с первых идей до ввода в эксплуатацию.\n\n"
-            "<b>Наши компетенции:</b>\n"
-            "— Разработка концепции рабочих пространств\n"
-            "— Управление строительством и отделкой\n"
-            "— Технический аудит помещений\n"
-            "— Контроль бюджета, сроков и качества\n\n"
-            "😉 Мы верные помощники в реализации ваших идей\n\n"
-            "<b>Нам доверяют:</b> Альфа-Банк, Лукойл, Huawei, Nestlé, НЛМК, РЖД, Газпром, ВТБ и другие лидеры рынка.\n\n"
-            "Каждый проект — это индивидуальная история под задачи бизнеса."
-        ),
+        photo=photo or 'https://i.postimg.cc/Nfss4q1y/FR7A1162.jpg',
+        caption=text,
         reply_markup=how_helpful_kb,
         parse_mode='HTML'
     )
