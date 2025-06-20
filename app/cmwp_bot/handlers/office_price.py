@@ -19,7 +19,7 @@ async def send_pdf_file(callback: CallbackQuery):
 
     await callback.message.answer_document(
         document=FSInputFile('files/office_price.pdf'),
-        caption='📄 Ознакомьтесь с прайс-листом на офисы:',
+        caption='💢 Текст не написан. Ожидаем:',
         reply_markup=office_price_kb,
         parse_mode='HTML'
     )

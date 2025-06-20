@@ -14,10 +14,10 @@ async def show_contacts(callback: CallbackQuery):
     await log_contacts_click(callback.from_user)
 
     await callback.message.edit_text(
-        'Свяжитесь с нами напрямую:\n\n'
-        'Email: tgbot-pds@cmwp.ru\n'
-        'Телефон: +7 499 430-16-96\n\n'
-        'Мы всегда готовы обсудить ваш проект и предложить оптимальное решение под ваши задачи.',
+        "Свяжитесь с нами напрямую:\n\n"
+        "Email: tgbot-pds@cmwp.ru\n"
+        "Телефон: +7 499 430-16-96\n\n"
+        "☎️ Мы всегда готовы обсудить ваш проект и предложить оптимальное решение задач!",
         reply_markup=contacts_kb,
         parse_mode='HTML'
     )

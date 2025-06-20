@@ -3,9 +3,9 @@ from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup, ReplyKeybo
 main_menu_kb = InlineKeyboardMarkup(
     inline_keyboard=[
         [InlineKeyboardButton(text='Узнать идеал своего офиса', callback_data='ideal')],
-        [InlineKeyboardButton(text='Что сотркудники хотят видеть в офисе', callback_data='staff_wants')],
-        [InlineKeyboardButton(text='Узнать стоимость организации офиса', callback_data='office_price')],
-        [InlineKeyboardButton(text='Чем мы можем быть полезны', callback_data='how_helpful')],
+        [InlineKeyboardButton(text='Топ-20 фишек офиса', callback_data='staff_wants')],
+        [InlineKeyboardButton(text='Скачать гайд про стоимость ремонта', callback_data='office_price')],
+        [InlineKeyboardButton(text='О нас', callback_data='how_helpful')],
         [InlineKeyboardButton(text='Контакты для связи', callback_data='contacts')]
     ]
 )
