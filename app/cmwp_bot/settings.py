@@ -10,6 +10,10 @@ class Settings(BaseSettings):
     POSTGRES_PASSWORD: Optional[str] = None
     POSTGRES_DB: Optional[str] = None
     
+    EMAIL_ADRESS: Optional[str] = None
+    SMTP_USER: Optional[str] = None
+    SMTP_PASS: Optional[str] = None
+    
     model_config = SettingsConfigDict(env_file='.env')
     
 

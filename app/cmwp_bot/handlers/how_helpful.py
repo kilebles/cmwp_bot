@@ -3,6 +3,7 @@ from aiogram.types import CallbackQuery
 
 from app.cmwp_bot.presentation.keyboards import how_helpful_kb
 from app.cmwp_bot.db.repo import get_session
+from app.cmwp_bot.services.email_service import send_discuss_email
 from app.cmwp_bot.services.user_service import create_or_update_user
 from app.cmwp_bot.services.action_service import create_user_action
 from app.cmwp_bot.db.models import ActionType
@@ -38,6 +39,8 @@ async def show_contacts(callback: CallbackQuery):
 
 @router.callback_query(F.data == 'discuss_project')
 async def contacts_answer(callback: CallbackQuery):
+    """Коммит в БД и рассылка админам и на почту"""
+    
     from_user = callback.from_user
     bot = callback.bot
 
@@ -76,6 +79,13 @@ async def contacts_answer(callback: CallbackQuery):
                 await bot.send_message(admin_id, text)
             except Exception:
                 pass
+        
+        await send_discuss_email(
+            full_name=full_name,
+            username_link=username_link,
+            phone=user.phone or "—",
+            company=user.company or "—"
+        )
 
     await callback.message.answer(
         'Ваша заявка отправлена, мы скоро свяжемся с вами!'

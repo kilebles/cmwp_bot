@@ -5,6 +5,7 @@ from typing import AsyncGenerator
 
 from app.cmwp_bot.presentation.keyboards import make_keyboard, get_plan_kb
 from app.cmwp_bot.db.repo import get_session
+from app.cmwp_bot.services.email_service import send_plan_email
 from app.cmwp_bot.services.survey_service import delete_answers_for_user, get_answers_for_user
 from app.cmwp_bot.services.user_service import create_or_update_user, get_admin_ids
 from app.cmwp_bot.services.action_service import create_user_action
@@ -132,7 +133,8 @@ async def ideal_office_survey(msg: Message, from_user) -> AsyncGenerator:
 
 @router.callback_query(F.data == 'get_plan')
 async def plan_answer(callback: CallbackQuery):
-    """Коммит в БД и рассылка админам"""
+    """Коммит в БД и рассылка админам и на почту"""
+    
     from_user = callback.from_user
     bot = callback.message.bot
 
@@ -184,6 +186,14 @@ async def plan_answer(callback: CallbackQuery):
         admin_ids = await get_admin_ids(session)
         for admin_id in admin_ids:
             await bot.send_message(admin_id, text, parse_mode='HTML')
+        
+        await send_plan_email(
+            full_name=full_name,
+            username_link=username_link,
+            phone=user.phone or "—",
+            company=user.company or "—",
+            answers_text=answers_text.replace('<b>', '').replace('</b>', '')
+        )
 
     await callback.message.answer(
         'Заявка принята. Мы уже готовим для вас план. Скоро свяжемся!',

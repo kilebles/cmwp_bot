@@ -7,7 +7,7 @@ from django.http import HttpResponseRedirect
 from django.utils.safestring import mark_safe
 from django.utils.html import format_html
 
-from app.cmwp_bot.services.broadcast import send_broadcast
+from app.cmwp_bot.services.broadcast_service import send_broadcast
 from .models import BroadcastMessage, User, SurveyAnswer, UserAction
 from django.contrib.auth.models import Group, User as AuthUser
 
