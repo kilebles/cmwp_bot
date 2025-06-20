@@ -42,6 +42,11 @@ async def create_or_update_user(
     return user
 
 
+async def get_user_by_tg_id(session: AsyncSession, tg_id: int) -> User | None:
+    result = await session.execute(select(User).where(User.tg_id == tg_id))
+    return result.scalar_one_or_none()
+
+
 async def get_admin_ids(session):
     result = await session.execute(select(User.tg_id).where(User.is_admin == True))
     return [row[0] for row in result.all()]

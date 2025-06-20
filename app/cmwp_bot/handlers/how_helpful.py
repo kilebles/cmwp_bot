@@ -31,7 +31,7 @@ async def contacts_answer(callback: CallbackQuery):
     from_user = callback.from_user
     bot = callback.bot
 
-    user, admin_ids = await log_discuss_project(from_user)
+    user, admin_ids, answers_text = await log_discuss_project(from_user)
 
     full_name = f'{user.first_name or ""} {user.last_name or ""}'.strip()
     username_link = f'https://t.me/{from_user.username}' if from_user.username else '—'
@@ -49,12 +49,13 @@ async def contacts_answer(callback: CallbackQuery):
             await bot.send_message(admin_id, text, parse_mode='HTML')
         except Exception:
             pass
-
+    
     await send_discuss_email(
         full_name=full_name,
         username_link=username_link,
         phone=user.phone or "—",
-        company=user.company or "—"
+        company=user.company or "—",
+        answers_text=answers_text
     )
 
     await callback.message.answer(
