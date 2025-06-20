@@ -8,7 +8,7 @@ router = Router()
 
 @router.callback_query(F.data == 'office_price')
 async def send_pdf_file(callback: CallbackQuery):
-
+    await callback.message.delete() 
     await callback.message.answer_document(
         document=FSInputFile('files/office_price.pdf'),
         caption='📄 Ознакомьтесь с прайс-листом на офисы:',

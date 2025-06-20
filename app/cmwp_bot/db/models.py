@@ -12,6 +12,7 @@ class ActionType(str, enum.Enum):
     CLICK_CONTACTS = 'CLICK_CONTACTS'
     CLICK_GET_PLAN = 'CLICK_GET_PLAN'
     CLICK_DISCUSS = 'CLICK_DISCUSS'
+    CLICK_PRICES = 'CLICK_PRICES'
 
 
 class User(Base):
