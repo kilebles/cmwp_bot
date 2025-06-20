@@ -16,7 +16,19 @@ def is_russian(text: str) -> bool:
 
 
 def normalize_phone(text: str) -> str:
-    return re.sub(r'[^\d+]', '', text)
+    """Приводим номер к формату +7XXXXXXXXXX"""
+    digits = re.sub(r'\D', '', text)
+
+    if digits.startswith('8'):
+        digits = '7' + digits[1:]
+    elif digits.startswith('9') and len(digits) == 10:
+        digits = '7' + digits
+    elif digits.startswith('7'):
+        pass
+    else:
+        return ''
+
+    return f'+{digits}'
 
 
 def is_valid_phone(text: str) -> bool:
