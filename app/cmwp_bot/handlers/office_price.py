@@ -1,5 +1,5 @@
 from aiogram import Router, F
-from aiogram.types import CallbackQuery
+from aiogram.types import CallbackQuery, FSInputFile
 
 from app.cmwp_bot.presentation.keyboards import office_price_kb
 
@@ -7,12 +7,13 @@ router = Router()
 
 
 @router.callback_query(F.data == 'office_price')
-async def show_contacts(callback: CallbackQuery):
-    # TODO: возможность менять message из админки (подтягивать из бд текст)
-    
-    await callback.message.edit_text(
-        "Вот ваш файл:",
+async def send_pdf_file(callback: CallbackQuery):
+
+    await callback.message.answer_document(
+        document=FSInputFile('files/office_price.pdf'),
+        caption='📄 Ознакомьтесь с прайс-листом на офисы:',
         reply_markup=office_price_kb,
         parse_mode='HTML'
     )
+
     await callback.answer()
