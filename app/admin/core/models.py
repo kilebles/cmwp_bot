@@ -109,8 +109,8 @@ class StaticText(models.Model):
     class Meta:
         db_table = 'static_texts'
         managed = True
-        verbose_name = 'Текст блока'
-        verbose_name_plural = 'Тексты блоков'
+        verbose_name = 'Описание'
+        verbose_name_plural = 'Описания'
 
     def __str__(self):
         return self.key
