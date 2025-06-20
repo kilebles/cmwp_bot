@@ -9,6 +9,7 @@ from app.cmwp_bot.handlers import back
 from app.cmwp_bot.handlers import staff_wants
 from app.cmwp_bot.handlers import how_helpful
 from app.cmwp_bot.handlers import ideal
+from app.cmwp_bot.handlers import office_price
 
 bot = Bot(
     token=config.BOT_TOKEN,
@@ -22,3 +23,4 @@ dp.include_router(back.router)
 dp.include_router(staff_wants.router)
 dp.include_router(how_helpful.router)
 dp.include_router(ideal.router)
+dp.include_router(office_price.router)
