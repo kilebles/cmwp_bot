@@ -55,3 +55,11 @@ class UserAction(Base):
     created_at: Mapped[dt.datetime] = mapped_column(default=dt.datetime.utcnow)
 
     user: Mapped['User'] = relationship(back_populates='actions')
+
+
+class StaticText(Base):
+    __tablename__ = 'static_texts'
+
+    key: Mapped[str] = mapped_column(primary_key=True)  # 'staff_wants', 'contacts' итд
+    content: Mapped[str] = mapped_column(Text, nullable=False)
+    photo_url: Mapped[str | None] = mapped_column(Text, nullable=True)

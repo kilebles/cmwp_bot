@@ -8,7 +8,7 @@ from django.utils.safestring import mark_safe
 from django.utils.html import format_html
 
 from app.cmwp_bot.services.broadcast_service import send_broadcast
-from .models import BroadcastMessage, User, SurveyAnswer, UserAction
+from .models import BroadcastMessage, StaticText, User, SurveyAnswer, UserAction
 from django.contrib.auth.models import Group, User as AuthUser
 
 
@@ -119,6 +119,24 @@ class BroadcastMessageAdmin(admin.ModelAdmin):
             message.save()
             self.message_user(request, 'Сообщение отправлено.', level=messages.SUCCESS)
         return HttpResponseRedirect("../../")
+    
+
+@admin.register(StaticText)
+class StaticTextAdmin(admin.ModelAdmin):
+    list_display = ['key', 'short_content', 'has_photo']
+    search_fields = ['key', 'content']
+    fields = ['key', 'content', 'photo_url']
+
+    def short_content(self, obj):
+        return format_html('<div style="max-width: 400px; white-space: pre-wrap;">{}</div>', obj.content[:150])
+
+    def has_photo(self, obj):
+        if obj.photo_url:
+            return format_html('<a href="{}" target="_blank">📷 Ссылка</a>', obj.photo_url)
+        return '—'
+
+    short_content.short_description = 'Текст'
+    has_photo.short_description = 'Фото'
 
 
 admin.site.unregister(Group)

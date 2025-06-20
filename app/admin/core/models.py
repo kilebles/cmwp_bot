@@ -99,3 +99,18 @@ class BroadcastMessage(models.Model):
 
     def __str__(self):
         return f'Рассылка от {self.created_at:%Y-%m-%d %H:%M}'
+    
+
+class StaticText(models.Model):
+    key = models.CharField(max_length=100, primary_key=True, verbose_name='Ключ')
+    content = models.TextField(verbose_name='Текст (HTML)')
+    photo_url = models.TextField(blank=True, null=True, verbose_name='Ссылка на фото')
+
+    class Meta:
+        db_table = 'static_texts'
+        managed = True
+        verbose_name = 'Текст блока'
+        verbose_name_plural = 'Тексты блоков'
+
+    def __str__(self):
+        return self.key

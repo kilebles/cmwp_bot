@@ -10,6 +10,8 @@ router = Router()
 
 @router.callback_query(F.data == 'office_price')
 async def send_pdf_file(callback: CallbackQuery):
+    # TODO: возможность менять message из админки (подтягивать из бд текст)
+    
     await callback.message.delete()
 
     await log_user_action(
